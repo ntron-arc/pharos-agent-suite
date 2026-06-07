@@ -1,0 +1,24 @@
+{
+  "network": "atlantic-testnet",
+  "contracts": [
+    {
+      "name": "Pharos DEX Router",
+      "address": "0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b",
+      "type": "dex",
+      "methods": ["swap", "addLiquidity", "removeLiquidity"]
+    },
+    {
+      "name": "Pharos Staking",
+      "address": "0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c",
+      "type": "staking",
+      "methods": ["stake", "unstake", "claimRewards"]
+    },
+    {
+      "name": "Pharos Faucet",
+      "address": "0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d",
+      "type": "faucet",
+      "methods": ["claim"]
+    }
+  ],
+  "note": "Addresses are illustrative. Agent should verify against live Pharos docs before use."
+}
