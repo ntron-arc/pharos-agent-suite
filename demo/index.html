@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharos Agent Suite — Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg: #020810;
+    --surface: #050f1e;
+    --panel: #071526;
+    --border: #0d3a5e;
+    --cyan: #00e5ff;
+    --cyan-dim: #007ea8;
+    --gold: #ffc107;
+    --gold-dim: #9a7400;
+    --green: #00ff88;
+    --red: #ff3d6e;
+    --orange: #ff9500;
+    --text: #c8dff0;
+    --text-dim: #4a7090;
+    --glow-cyan: 0 0 20px rgba(0,229,255,0.4);
+    --glow-gold: 0 0 20px rgba(255,193,7,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Scanlines */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 48px 0 32px;
+    text-align: center;
+    position: relative;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,229,255,0.05);
+    border: 1px solid var(--cyan-dim);
+    padding: 6px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: pulse-border 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { border-color: var(--cyan-dim); box-shadow: none; }
+    50% { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+  }
+
+  .logo-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--cyan) 0%, #ffffff 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  .subtitle span { color: var(--cyan); }
+
+  /* ── LAYER TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 48px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 14px 28px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .tab::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 2px;
+    background: var(--cyan);
+    transform: scaleX(0);
+    transition: transform 0.2s;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--cyan);
+  }
+  .tab.active::after { transform: scaleX(1); }
+
+  .tab-icon { margin-right: 8px; }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 32px;
+    display: none;
+    animation: fade-in 0.3s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── FORM ELEMENTS ── */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: end;
+  }
+
+  label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  select option { background: var(--surface); }
+
+  .btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 12px 28px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cyan);
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+    z-index: -1;
+  }
+
+  .btn:hover {
+    color: var(--bg);
+    box-shadow: var(--glow-cyan);
+  }
+  .btn:hover::before { transform: translateX(0); }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn:disabled::before { display: none; }
+
+  .btn-gold {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .btn-gold::before { background: var(--gold); }
+  .btn-gold:hover { box-shadow: var(--glow-gold); }
+
+  /* ── OUTPUT TERMINAL ── */
+  .terminal {
+    background: #010a14;
+    border: 1px solid var(--border);
+    padding: 0;
+    margin-top: 24px;
+    min-height: 200px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .terminal-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .t-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .t-dot.red { background: #ff5f57; }
+  .t-dot.yellow { background: #ffbd2e; }
+  .t-dot.green { background: #28c840; }
+
+  .terminal-body {
+    padding: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: #4a7090;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  .terminal-body .line { display: block; }
+  .terminal-body .c-cyan { color: var(--cyan); }
+  .terminal-body .c-gold { color: var(--gold); }
+  .terminal-body .c-green { color: var(--green); }
+  .terminal-body .c-red { color: var(--red); }
+  .terminal-body .c-orange { color: var(--orange); }
+  .terminal-body .c-white { color: #ffffff; }
+  .terminal-body .c-dim { color: #2a4a60; }
+
+  .cursor-blink::after {
+    content: '█';
+    color: var(--cyan);
+    animation: blink 0.8s step-end infinite;
+  }
+
+  /* ── LOADING BAR ── */
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--gold));
+    width: 0;
+    transition: width 0.4s ease;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  /* ── SCORE METER ── */
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px;
+    background: rgba(0,229,255,0.03);
+    border: 1px solid var(--border);
+    margin: 16px 0;
+  }
+
+  .score-circle {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .score-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--cyan);
+    line-height: 1;
+  }
+
+  .score-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+  }
+
+  .score-bar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .score-bar-track {
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--gold));
+    transition: width 1s ease;
+    width: 0;
+  }
+
+  /* ── CRITERIA LIST ── */
+  .criteria-list { list-style: none; }
+  .criteria-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(13,58,94,0.5);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .c-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .pts {
+    margin-left: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .pts.earned { color: var(--green); }
+
+  /* ── WORKFLOW STEPS ── */
+  .workflow {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 20px 0;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    background: var(--surface);
+    border-left: 3px solid var(--border);
+    transition: all 0.3s;
+    opacity: 0.5;
+  }
+
+  .step.active {
+    border-left-color: var(--cyan);
+    background: rgba(0,229,255,0.05);
+    opacity: 1;
+    box-shadow: inset 0 0 20px rgba(0,229,255,0.03);
+  }
+
+  .step.done {
+    border-left-color: var(--green);
+    opacity: 1;
+  }
+
+  .step.error {
+    border-left-color: var(--red);
+    opacity: 1;
+  }
+
+  .step-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    flex: 1;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .step-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .step.active .step-status { color: var(--cyan); }
+  .step.done .step-status { color: var(--green); }
+  .step.error .step-status { color: var(--red); }
+
+  /* ── SECTION DIVIDERS ── */
+  .section-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--cyan-dim);
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* ── DESCRIPTION CARDS ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  @media (max-width: 700px) {
+    .feature-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+  }
+
+  .feat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .feat-card:hover {
+    border-color: var(--cyan-dim);
+    box-shadow: 0 0 30px rgba(0,229,255,0.06);
+  }
+
+  .feat-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .feat-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .feat-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 48px 0 32px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  footer a {
+    color: var(--cyan-dim);
+    text-decoration: none;
+  }
+
+  footer a:hover { color: var(--cyan); }
+
+  /* ── CORNER DECORATIONS ── */
+  .corner-tl, .corner-br {
+    position: absolute;
+    width: 20px; height: 20px;
+    pointer-events: none;
+  }
+  .corner-tl { top: 0; left: 0; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+
+  /* ── INTENT INPUT ── */
+  .intent-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .intent-chip {
+    background: rgba(0,229,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 5px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+  }
+
+  .intent-chip:hover {
+    border-color: var(--cyan-dim);
+    color: var(--cyan);
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    font-size: 12px;
+  }
+  textarea:focus { border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+
+  .hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-badge">
+      <div class="logo-dot"></div>
+      PHAROS NETWORK · AGENT CENTRE · SKILL BUILDER
+    </div>
+    <h1>PHAROS AGENT SUITE</h1>
+    <p class="subtitle">Three Intelligence Layers · One Skill · <span>Unlimited Onchain Power</span></p>
+  </header>
+
+  <!-- FEATURE CARDS -->
+  <div class="feature-grid">
+    <div class="feat-card">
+      <span class="feat-icon">🏥</span>
+      <div class="feat-title">WALLET HEALTH</div>
+      <div class="feat-desc">Deep wallet diagnostics. Balance summary, activity score 0–100, risk flags, and personalized recommendations — no private key required.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">🎯</span>
+      <div class="feat-title">AIRDROP RADAR</div>
+      <div class="feat-desc">Score any wallet against Pharos eligibility criteria. See exactly what's missing and get a step-by-step action plan to maximize your chances.</div>
+    </div>
+    <div class="feat-card">
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">DEFI COMPOSE</div>
+      <div class="feat-desc">Turn plain language into chained onchain execution. Wrap → approve → swap → stake from one prompt. Agent plans, confirms, then executes.</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('health')">
+      <span class="tab-icon">🏥</span>WALLET HEALTH
+    </button>
+    <button class="tab" onclick="switchTab('airdrop')">
+      <span class="tab-icon">🎯</span>AIRDROP RADAR
+    </button>
+    <button class="tab" onclick="switchTab('compose')">
+      <span class="tab-icon">⚡</span>DEFI COMPOSE
+    </button>
+  </div>
+
+  <!-- ── TAB 1: WALLET HEALTH ── -->
+  <div id="tab-health" class="panel active">
+    <div style="position:relative;">
+      <div class="corner-tl"></div>
+      <div class="corner-br"></div>
+
+      <div class="section-title">INPUT</div>
+      <div class="form-row">
+        <div>
+          <label>Wallet Address</label>
+          <input id="h-address" type="text" placeholder="0x..." value="0xAbCd...1234">
+        </div>
+        <div>
+          <label>Network</label>
+          <select id="h-network">
+            <option value="testnet">Atlantic Testnet</option>
+            <option value="mainnet">Mainnet</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="runHealthCheck()">RUN DIAGNOSTIC</button>
+
+      <div class="terminal" id="health-terminal" style="display:none; margin-top:24px;">
+        <div class="loading-bar" id="health-bar"></div>
+        <div class="terminal-header">
+          <div class="t-dot red"></div><div class="t-dot yellow"></div><div class="t-dot green"></div>
+          <span style="margin-left:8px;">pharos-agent-suite · wallet-health</span>
+        </div>
+        <div class="terminal-body" id="health-output"></div>
+      </div>
+
+      <div id="health-score-block" style="display:none;">
+        <div class="section-title">ACTIVITY SCORE</div>
+        <div class="score-display">
+          <div class="score-circle" id="health-circle">
+            <div class="score-num" id="health-score-num">0</div>
+            <div class="score-label">/ 100</div>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-label">OVERALL HEALTH</div>
+            <div class="score-bar-track">
+              <div class="score-bar-fill" id="health-bar-fill"></div>
+            </div>
+            <div style="margin-top:10px; font-size:13px; color:var(--text-dim);" id="health-tier"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 2: AIRDROP RADAR ── -->
+  <div id="tab-airdrop" class="panel">
+    <div style="position:relative;">
+      <div class="corner-tl"></div>
+      <div class="corner-br"></div>
+
+      <div class="section-title">INPUT</div>
+      <div class="form-row">
+        <div>
+          <label>Wallet Address to Score</label>
+          <input id="a-address" type="text" placeholder="0x..." value="0xAbCd...1234">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="btn btn-gold" onclick="runAirdropCheck()">SCAN ELIGIBILITY</button>
+        </div>
+      </div>
+
+      <div class="terminal" id="airdrop-terminal" style="display:none;">
+        <div class="loading-bar" id="airdrop-bar"></div>
+        <div class="terminal-header">
+          <div class="t-dot red"></div><div class="t-dot yellow"></div><div class="t-dot green"></div>
+          <span style="margin-left:8px;">pharos-agent-suite · airdrop-radar</span>
+        </div>
+        <div class="terminal-body" id="airdrop-output"></div>
+      </div>
+
+      <div id="airdrop-criteria-block" style="display:none;">
+        <div class="section-title">CRITERIA BREAKDOWN</div>
+        <ul class="criteria-list" id="criteria-list"></ul>
+
+        <div class="section-title" style="margin-top:24px;">RECOMMENDED ACTIONS</div>
+        <div id="airdrop-recs" style="font-size:14px; color:var(--text-dim); line-height:2;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 3: DEFI COMPOSE ── -->
+  <div id="tab-compose" class="panel">
+    <div style="position:relative;">
+      <div class="corner-tl"></div>
+      <div class="corner-br"></div>
+
+      <div class="section-title">DESCRIBE YOUR INTENT</div>
+      <label>Natural Language Prompt</label>
+      <textarea id="c-intent" placeholder="e.g. I have 5 PHRS sitting idle — put it to work for the best testnet yield"></textarea>
+      <div class="hint">Agent will parse intent → build workflow → confirm before executing</div>
+
+      <div class="intent-examples">
+        <div class="intent-chip" onclick="setIntent('Swap 1 PHRS for USDC and stake it')">Swap + Stake</div>
+        <div class="intent-chip" onclick="setIntent('Maximize my testnet activity footprint with 2 PHRS')">Max Footprint</div>
+        <div class="intent-chip" onclick="setIntent('Airdrop 0.1 PHRS to 5 community addresses')">Batch Airdrop</div>
+        <div class="intent-chip" onclick="setIntent('Exit my position safely and move to stablecoins')">Safe Exit</div>
+        <div class="intent-chip" onclick="setIntent('Check if I qualify for the airdrop then fix any gaps')">Airdrop + Fix</div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:12px; align-items:center;">
+        <button class="btn" onclick="runCompose()">COMPOSE WORKFLOW</button>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:1px;">NO EXECUTION WITHOUT CONFIRMATION</div>
+      </div>
+
+      <div id="workflow-block" style="display:none; margin-top:24px;">
+        <div class="section-title">PROPOSED WORKFLOW</div>
+        <div class="workflow" id="workflow-steps"></div>
+
+        <div id="confirm-block" style="display:none; margin-top:20px; padding:20px; background:rgba(255,193,7,0.05); border:1px solid var(--gold-dim);">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:12px;">⚠ CONFIRM EXECUTION</div>
+          <div style="font-size:14px;color:var(--text-dim);margin-bottom:16px;" id="confirm-summary"></div>
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-gold" onclick="executeWorkflow()">CONFIRM & EXECUTE</button>
+            <button class="btn" onclick="cancelWorkflow()" style="border-color:var(--red);color:var(--red);">CANCEL</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal" id="compose-terminal" style="display:none; margin-top:24px;">
+        <div class="loading-bar" id="compose-bar"></div>
+        <div class="terminal-header">
+          <div class="t-dot red"></div><div class="t-dot yellow"></div><div class="t-dot green"></div>
+          <span style="margin-left:8px;">pharos-agent-suite · defi-compose · execution</span>
+        </div>
+        <div class="terminal-body" id="compose-output"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <div class="container">
+    PHAROS AGENT SUITE · SKILL BUILDER CAMPAIGN 2026 ·
+    <a href="https://github.com/PharosNetwork/pharos-skill-engine" target="_blank">BASE ENGINE</a> ·
+    <a href="https://www.pharos.xyz/agent-center" target="_blank">AGENT CENTER</a>
+  </div>
+</footer>
+
+<script>
+// ── TAB SWITCHING ──
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['health','airdrop','compose'][i] === id);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ── TYPING ANIMATION ──
+async function typeLines(el, lines, delay=18) {
+  el.innerHTML = '';
+  for (const line of lines) {
+    await new Promise(r => setTimeout(r, delay));
+    const span = document.createElement('span');
+    span.className = 'line';
+    span.innerHTML = line;
+    el.appendChild(span);
+    el.scrollTop = el.scrollHeight;
+  }
+}
+
+function animateBar(id, to=100, duration=1800) {
+  const bar = document.getElementById(id);
+  let start = null;
+  function step(ts) {
+    if (!start) start = ts;
+    const p = Math.min((ts-start)/duration, 1);
+    bar.style.width = (p * to) + '%';
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── WALLET HEALTH ──
+async function runHealthCheck() {
+  const addr = document.getElementById('h-address').value || '0xAbCd...1234';
+  const net = document.getElementById('h-network').value;
+  const netLabel = net === 'testnet' ? 'Atlantic Testnet' : '⚠ MAINNET';
+
+  const term = document.getElementById('health-terminal');
+  const out = document.getElementById('health-output');
+  term.style.display = 'block';
+  document.getElementById('health-score-block').style.display = 'none';
+
+  animateBar('health-bar');
+
+  const score = Math.floor(Math.random() * 40) + 55;
+  const txCount = Math.floor(Math.random() * 80) + 15;
+  const phrsBalance = (Math.random() * 20 + 0.5).toFixed(4);
+  const usdcBalance = (Math.random() * 500 + 10).toFixed(2);
+  const gasAvg = Math.floor(Math.random() * 30000 + 21000);
+  const daysAgo = Math.floor(Math.random() * 10 + 1);
+  const contracts = Math.floor(Math.random() * 8 + 3);
+
+  const lines = [
+    `<span class="c-cyan">▶ pharos-agent-suite :: wallet-health</span>`,
+    `<span class="c-dim">══════════════════════════════════════════════</span>`,
+    ``,
+    `<span class="c-dim">Connecting to RPC...</span>`,
+    `<span class="c-green">✓ Connected — ${netLabel}</span>`,
+    ``,
+    `<span class="c-cyan">$ cast balance ${addr.substring(0,10)}... --ether</span>`,
+    `<span class="c-white">${phrsBalance} PHRS</span>`,
+    ``,
+    `<span class="c-cyan">$ cast tx-count ${addr.substring(0,10)}...</span>`,
+    `<span class="c-white">${txCount} transactions</span>`,
+    ``,
+    `<span class="c-cyan">$ cast call [USDC] "balanceOf(address)(uint256)" ${addr.substring(0,10)}...</span>`,
+    `<span class="c-white">${usdcBalance} USDC</span>`,
+    ``,
+    `<span class="c-dim">Analyzing activity patterns...</span>`,
+    `<span class="c-dim">Scanning ${contracts} unique contract interactions...</span>`,
+    `<span class="c-dim">Checking last transaction timestamp...</span>`,
+    ``,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    `<span class="c-gold">  PHAROS WALLET HEALTH REPORT</span>`,
+    `<span class="c-gold">  Address: ${addr.substring(0,14)}...</span>`,
+    `<span class="c-gold">  Network: ${netLabel}</span>`,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    ``,
+    `<span class="c-cyan">📊 BALANCE SUMMARY</span>`,
+    `  Native PHRS:     <span class="c-white">${phrsBalance} PHRS</span>`,
+    `  USDC:            <span class="c-white">${usdcBalance} USDC</span>`,
+    `  WPHRS:           <span class="c-white">0.0000 WPHRS</span>`,
+    ``,
+    `<span class="c-cyan">⚡ ACTIVITY SCORE: <span class="c-gold">${score} / 100</span></span>`,
+    `  Total Transactions:    <span class="c-white">${txCount}</span>`,
+    `  Unique Contracts:      <span class="c-white">${contracts}</span>`,
+    `  Last Active:           <span class="c-white">${daysAgo} day${daysAgo>1?'s':''} ago</span>`,
+    `  Avg Gas Used/Tx:       <span class="c-white">${gasAvg.toLocaleString()}</span>`,
+    ``,
+    `<span class="c-cyan">🔍 RISK FLAGS</span>`,
+    `  <span class="c-green">✅ CLEAN — No issues detected</span>`,
+    ``,
+    `<span class="c-cyan">💡 AGENT RECOMMENDATION</span>`,
+    `  ${score >= 80 ? '<span class="c-green">Strong wallet. Keep interacting with contracts to maintain score.</span>' : '<span class="c-orange">Boost score: interact with 2 more protocols & increase tx volume.</span>'}`,
+    ``,
+    `<span class="c-dim">══════════════════════════════════════</span>`,
+    `<span class="c-green">✓ Report complete</span>`,
+  ];
+
+  await typeLines(out, lines, 35);
+
+  // Show score visual
+  setTimeout(() => {
+    document.getElementById('health-score-block').style.display = 'block';
+    document.getElementById('health-score-num').textContent = score;
+    document.getElementById('health-bar-fill').style.width = score + '%';
+    const tier = score >= 80 ? '🟢 EXCELLENT — Top-tier wallet' :
+                 score >= 60 ? '🟡 GOOD — Solid activity' :
+                 score >= 40 ? '🟠 FAIR — Needs more onchain history' : '🔴 LOW — Start building activity';
+    document.getElementById('health-tier').textContent = tier;
+    document.getElementById('health-circle').style.borderColor =
+      score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--gold)' : 'var(--orange)';
+  }, 500);
+}
+
+// ── AIRDROP RADAR ──
+async function runAirdropCheck() {
+  const addr = document.getElementById('a-address').value || '0xAbCd...1234';
+  const term = document.getElementById('airdrop-terminal');
+  const out = document.getElementById('airdrop-output');
+  term.style.display = 'block';
+  document.getElementById('airdrop-criteria-block').style.display = 'none';
+
+  animateBar('airdrop-bar');
+
+  const criteria = [
+    { label: 'Minimum 10 transactions', pts: 20, pass: Math.random() > 0.3 },
+    { label: 'Pharos contract interaction', pts: 25, pass: Math.random() > 0.4 },
+    { label: 'Holds native PHRS', pts: 20, pass: Math.random() > 0.2 },
+    { label: 'Smart contract use/deploy', pts: 20, pass: Math.random() > 0.5 },
+    { label: 'Active within 60 days', pts: 15, pass: Math.random() > 0.25 },
+  ];
+
+  const totalScore = criteria.reduce((s,c) => s + (c.pass ? c.pts : 0), 0);
+
+  const lines = [
+    `<span class="c-gold">▶ pharos-agent-suite :: airdrop-radar</span>`,
+    `<span class="c-dim">══════════════════════════════════════════════</span>`,
+    ``,
+    `<span class="c-dim">Scanning wallet: ${addr.substring(0,14)}...</span>`,
+    `<span class="c-dim">Loading eligibility criteria matrix...</span>`,
+    ``,
+    ...criteria.map(c =>
+      `  ${c.pass ? '<span class="c-green">✅</span>' : '<span class="c-red">❌</span>'} ${c.label.padEnd(35)} <span class="${c.pass?'c-green':'c-red'}">${c.pass?'+'+c.pts+' pts':'—'}</span>`
+    ),
+    ``,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    `<span class="c-gold">  AIRDROP ELIGIBILITY SCORE: ${totalScore} / 100</span>`,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    ``,
+    `<span class="c-cyan">📈 LIKELIHOOD TIER: ${totalScore>=90?'<span class="c-green">🟢 HIGH</span>':totalScore>=60?'<span class="c-gold">🟡 MEDIUM</span>':totalScore>=30?'<span class="c-orange">🟠 LOW</span>':'<span class="c-red">🔴 VERY LOW</span>'}</span>`,
+    ``,
+    `<span class="c-cyan">🛠 RECOMMENDED ACTIONS:</span>`,
+    ...criteria.filter(c => !c.pass).map((c,i) => `  ${i+1}. <span class="c-white">Fix: ${c.label}</span>`),
+    criteria.filter(c => !c.pass).length === 0 ? `  <span class="c-green">All criteria met. Monitor official Pharos announcements.</span>` : '',
+    ``,
+    `<span class="c-green">✓ Scan complete</span>`,
+  ].filter(l => l !== undefined);
+
+  await typeLines(out, lines, 40);
+
+  // Show criteria visual
+  setTimeout(() => {
+    document.getElementById('airdrop-criteria-block').style.display = 'block';
+    const list = document.getElementById('criteria-list');
+    list.innerHTML = criteria.map(c => `
+      <li>
+        <span class="c-badge">${c.pass ? '✅' : '❌'}</span>
+        <span>${c.label}</span>
+        <span class="pts ${c.pass?'earned':''}">${c.pass ? '+'+c.pts+' pts' : '—'}</span>
+      </li>
+    `).join('');
+
+    const recs = document.getElementById('airdrop-recs');
+    const missing = criteria.filter(c => !c.pass);
+    recs.innerHTML = missing.length === 0
+      ? `<span style="color:var(--green)">✅ All criteria met. Strong airdrop candidate. Stay active.</span>`
+      : missing.map((c,i) => `<div>${i+1}. Complete: <strong style="color:var(--cyan)">${c.label}</strong></div>`).join('');
+  }, 400);
+}
+
+// ── DEFI COMPOSE ──
+function setIntent(text) {
+  document.getElementById('c-intent').value = text;
+}
+
+const workflowTemplates = {
+  swap: [
+    { text: 'Verify wallet balance', cmd: 'cast balance' },
+    { text: 'Estimate gas for full workflow', cmd: 'cast estimate' },
+    { text: 'Approve token spend', cmd: 'cast send [TOKEN] approve(...)' },
+    { text: 'Execute swap', cmd: 'cast send [DEX] swap(...)' },
+    { text: 'Confirm final state', cmd: 'cast balance' },
+  ],
+  stake: [
+    { text: 'Check PHRS balance', cmd: 'cast balance' },
+    { text: 'Estimate staking gas', cmd: 'cast estimate' },
+    { text: 'Approve staking contract', cmd: 'cast send approve(...)' },
+    { text: 'Execute stake', cmd: 'cast send stake(...)' },
+    { text: 'Verify staked position', cmd: 'cast call balanceOf(...)' },
+  ],
+  airdrop: [
+    { text: 'Validate recipient addresses', cmd: 'Local validation' },
+    { text: 'Check sender balance', cmd: 'cast balance' },
+    { text: 'Estimate batch gas', cmd: 'cast estimate' },
+    { text: 'Approve token for batch transfer', cmd: 'cast send approve(...)' },
+    { text: 'Execute batch airdrop', cmd: 'forge script BatchAirdrop' },
+    { text: 'Verify all transfers confirmed', cmd: 'cast receipt [tx]' },
+  ],
+  default: [
+    { text: 'Parse intent + check balances', cmd: 'cast balance' },
+    { text: 'Query ecosystem contracts', cmd: 'cast call' },
+    { text: 'Build optimal execution path', cmd: 'Agent reasoning' },
+    { text: 'Estimate total gas cost', cmd: 'cast estimate' },
+    { text: 'Execute composed workflow', cmd: 'cast send / forge script' },
+    { text: 'Report final state', cmd: 'cast balance + cast receipt' },
+  ]
+};
+
+async function runCompose() {
+  const intent = document.getElementById('c-intent').value.trim();
+  if (!intent) return;
+
+  const lower = intent.toLowerCase();
+  const steps = lower.includes('swap') ? workflowTemplates.swap :
+                lower.includes('stake') || lower.includes('yield') ? workflowTemplates.stake :
+                lower.includes('airdrop') ? workflowTemplates.airdrop :
+                workflowTemplates.default;
+
+  // Build workflow visual
+  document.getElementById('workflow-block').style.display = 'block';
+  document.getElementById('confirm-block').style.display = 'none';
+  document.getElementById('compose-terminal').style.display = 'none';
+
+  const wf = document.getElementById('workflow-steps');
+  wf.innerHTML = steps.map((s,i) => `
+    <div class="step" id="step-${i}" style="animation: fade-in 0.3s ease ${i*0.1}s both;">
+      <div class="step-num">0${i+1}</div>
+      <div class="step-text">${s.text}</div>
+      <div class="step-status" style="font-size:10px;">${s.cmd}</div>
+    </div>
+  `).join('');
+
+  // Show confirm block after short delay
+  setTimeout(() => {
+    document.getElementById('confirm-block').style.display = 'block';
+    const gasEst = (Math.random() * 0.02 + 0.001).toFixed(4);
+    document.getElementById('confirm-summary').innerHTML =
+      `Network: <strong style="color:var(--cyan)">Atlantic Testnet</strong> &nbsp;·&nbsp; Steps: <strong style="color:var(--cyan)">${steps.length}</strong> &nbsp;·&nbsp; Est. Gas: <strong style="color:var(--cyan)">~${gasEst} PHRS</strong>`;
+  }, steps.length * 100 + 400);
+}
+
+async function executeWorkflow() {
+  document.getElementById('confirm-block').style.display = 'none';
+  const term = document.getElementById('compose-terminal');
+  const out = document.getElementById('compose-output');
+  term.style.display = 'block';
+  animateBar('compose-bar', 100, 3000);
+
+  const steps = document.querySelectorAll('#workflow-steps .step');
+  const lines = [];
+
+  lines.push(`<span class="c-cyan">▶ pharos-agent-suite :: defi-compose :: executing</span>`);
+  lines.push(`<span class="c-dim">══════════════════════════════════════════════</span>`);
+  lines.push(``);
+
+  await typeLines(out, lines, 30);
+
+  for (let i = 0; i < steps.length; i++) {
+    steps[i].classList.add('active');
+    steps[i].querySelector('.step-status').textContent = 'RUNNING...';
+
+    const txHash = '0x' + Array.from({length:64},()=>Math.floor(Math.random()*16).toString(16)).join('');
+    await new Promise(r => setTimeout(r, 900 + Math.random()*600));
+
+    const stepName = steps[i].querySelector('.step-text').textContent;
+    const newLine = document.createElement('span');
+    newLine.className = 'line';
+    newLine.innerHTML = `<span class="c-green">✅</span> Step ${i+1}: ${stepName} — <span class="c-dim">tx: ${txHash.substring(0,16)}...</span>`;
+    out.appendChild(newLine);
+    out.scrollTop = out.scrollHeight;
+
+    steps[i].classList.remove('active');
+    steps[i].classList.add('done');
+    steps[i].querySelector('.step-status').textContent = '✓ DONE';
+  }
+
+  const finalLines = [
+    ``,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    `<span class="c-gold">  EXECUTION REPORT — COMPLETE</span>`,
+    `<span class="c-gold">══════════════════════════════════════</span>`,
+    ``,
+    `  All <span class="c-white">${steps.length}</span> steps completed successfully`,
+    `  Explorer: <span class="c-cyan">https://pharosscan.io/address/...</span>`,
+    ``,
+    `<span class="c-green">✓ Workflow complete. Position updated.</span>`,
+  ];
+
+  for (const line of finalLines) {
+    await new Promise(r => setTimeout(r, 40));
+    const span = document.createElement('span');
+    span.className = 'line';
+    span.innerHTML = line;
+    out.appendChild(span);
+    out.scrollTop = out.scrollHeight;
+  }
+}
+
+function cancelWorkflow() {
+  document.getElementById('confirm-block').style.display = 'none';
+  document.querySelectorAll('#workflow-steps .step').forEach(s => s.style.opacity = '0.3');
+}
+</script>
+</body>
+</html>
